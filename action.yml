@@ -69,7 +69,7 @@ runs:
       run: git push -f fork ${{ inputs.extension_name }}-${{ steps.get_github_release.outputs.tag_name }}
       shell: bash
       working-directory: raycast-extensions
-    - run: Create pull request
+    - name: Create pull request
       run: gh pr create --title "Update ${{ inputs.extension_name }} to ${{ steps.get_github_release.outputs.tag_name }}" --body "${{ steps.get_github_release.outputs.body }}"
       shell: bash
       working-directory: raycast-extensions
