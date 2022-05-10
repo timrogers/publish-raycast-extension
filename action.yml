@@ -71,7 +71,7 @@ runs:
       working-directory: raycast-extensions
     - name: Create pull request
       id: create_pull_request
-      run: ::set-output name={url}::$(gh pr create --assignee @me --head ${{ inputs.github_username }}:${{ inputs.extension_name }}-${{ steps.get_github_release.outputs.tag_name }} --fill)
+      run: echo "::set-output name={url}::$(gh pr create --assignee @me --head ${{ inputs.github_username }}:${{ inputs.extension_name }}-${{ steps.get_github_release.outputs.tag_name }} --fill)"
       shell: bash
       working-directory: raycast-extensions
       env:
