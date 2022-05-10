@@ -8,15 +8,13 @@ inputs:
     description: The name of your fork of the `raycast/extensions` repo (for example `timrogers/extensions`)
     required: true
   github_access_token:
-    description: A GitHub personal access token with `repo` permissions, used to push to your fork (see `extensions_fork`) and create and manage pull requeats to the `raycast/extensions` repo. You should store this as an [encrypted secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets).
+    description: A GitHub personal access token with `repo` and `workflow` permissions, used to push to your fork (see `extensions_fork`) and create and manage pull requeats to the `raycast/extensions` repo. You should store this as an [encrypted secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets).
     required: true
   github_username:
     description: The username that the `github_access_token` belongs to
-    required: false
-    # TODO: Remove default
-    default: timrogers
-  extension_path:
-    description: The path to your extension within the `raycast/extensions` repo (for example `extensions/iata-code-decoder`) 
+    required: true
+  extension_name:
+    description: The name of your extension, which should exist as a directory inside the `extensions` directory in the `raycast/extensions` repo (for example `iata-code-decoder`) 
     required: true
 runs:
   using: composite
@@ -44,15 +42,15 @@ runs:
       shell: bash
       working-directory: raycast-extensions
     - name: Create your extension directory in the `extensions` repo (if it doesn't exist already)
-      run: mkdir -p ${{ inputs.extension_path }}
+      run: mkdir -p extensions/${{ inputs.extension_name }}
       shell: bash
       working-directory: raycast-extensions
     - name: Copy your extension into the `raycast/extensions` repo
-      run: cp -Rf . ../raycast-extensions/${{ inputs.extension_path }}
+      run: cp -Rf . ../raycast-extensions/extensions/${{ inputs.extension_name }}
       shell: bash
       working-directory: my-extension
     - name: Create a branch for your extension release
-      run: git checkout -b ${{ inputs.extension_path }}-${{ steps.get_github_release.outputs.tag_name }}
+      run: git checkout -b ${{ inputs.extension_name }}-${{ steps.get_github_release.outputs.tag_name }}
       shell: bash
       working-directory: raycast-extensions
     - name: Stage changes, ready to commit
@@ -68,6 +66,10 @@ runs:
       shell: bash
       working-directory: raycast-extensions
     - name: Push changes to fork
-      run: git push -f fork ${{ inputs.extension_path }}-${{ steps.get_github_release.outputs.tag_name }}
+      run: git push -f fork ${{ inputs.extension_name }}-${{ steps.get_github_release.outputs.tag_name }}
+      shell: bash
+      working-directory: raycast-extensions
+    - run: Create pull request
+      run: gh pr create --title "Update ${{ inputs.extension_name }} to ${{ steps.get_github_release.outputs.tag_name }}" --body "${{ steps.get_github_release.outputs.body }}"
       shell: bash
       working-directory: raycast-extensions
