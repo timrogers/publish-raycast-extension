@@ -53,6 +53,10 @@ runs:
       run: git add --all .
       shell: bash
       working-directory: raycast-extensions
+    - name: Configure Git so we can make commits
+      run: git config user.name github-actions && git config user.email github-actions@github.com
+      shell: bash
+      working-directory: raycast-extensions
     - name: Commit changes
       run: git commit -m '${{ steps.get_github_release.outputs.tag_name }}'
       shell: bash
