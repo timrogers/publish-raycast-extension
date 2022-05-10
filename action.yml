@@ -16,6 +16,10 @@ inputs:
   extension_name:
     description: The name of your extension, which should exist as a directory inside the `extensions` directory in the `raycast/extensions` repo (for example `iata-code-decoder`) 
     required: true
+outputs:
+  pull_request_url:
+    description: The URL of the pull request to `raycast/extensions` that was created
+    value: ${{ steps.create_pull_request.outputs.url }}
 runs:
   using: composite
   steps:
@@ -70,7 +74,8 @@ runs:
       shell: bash
       working-directory: raycast-extensions
     - name: Create pull request
-      run: gh pr create --assignee @me --head ${{ inputs.github_username }}:${{ inputs.extension_name }}-${{ steps.get_github_release.outputs.tag_name }} --fill
+      id: create_pull_request
+      run: ::set-output name={url}::$(gh pr create --assignee @me --head ${{ inputs.github_username }}:${{ inputs.extension_name }}-${{ steps.get_github_release.outputs.tag_name }} --fill)
       shell: bash
       working-directory: raycast-extensions
       env:
