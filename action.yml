@@ -45,10 +45,6 @@ runs:
       run: git remote add fork https://${{ inputs.github_username }}:${{ inputs.github_access_token }}@github.com/${{ inputs.extensions_fork }}.git
       shell: bash
       working-directory: raycast-extensions
-    - name: Create your extension directory in the `extensions` repo (if it doesn't exist already)
-      run: mkdir -p extensions/${{ inputs.extension_name }}
-      shell: bash
-      working-directory: raycast-extensions
     - name: Copy your extension into the `raycast/extensions` repo
       run: cp -Rf . ../raycast-extensions/extensions/${{ inputs.extension_name }}
       shell: bash
