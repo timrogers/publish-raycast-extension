@@ -1,36 +1,40 @@
-name: 'Release Raycast Extension'
-description: Releases a Raycast extension from your own repo to the `raycast/extensions` repo. This action is designed to hook into the `release.published` event, and it will fail if the most recent commit doesn't have an associated release.
+name: 'Publish Raycast Extension'
+description: Publishes changes to a Raycast extension, syncing a release from your own single extension repo to the shared `raycast/extensions` repo. This action is designed to hook into GitHub Actions' [`release.published` event](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#release), so it will fail if the most recent commit doesn't have an associated [release](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases).
 branding:
   icon: cast
   color: red
 inputs:
-  extensions_fork:
-    description: The name of your fork of the `raycast/extensions` repo (for example `timrogers/extensions`)
+  raycast_extensions_fork_full_name:
+    description: The full name of your fork of the `raycast/extensions` repo (for example `timrogers/extensions`)
     required: true
   github_access_token:
-    description: A GitHub personal access token with `repo` and `workflow` permissions, used to push to your fork (see `extensions_fork`) and create and manage pull requeats to the `raycast/extensions` repo. You should store this as an [encrypted secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets).
+    description: A GitHub personal access token with the `repo` and `workflow` permissions, used to push to your fork of `raycast/extensions` (see `raycast_extensions_fork_full_name`) and create pull requests to the `raycast/extensions` repo. For security reasons, you should store this as an [encrypted secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets).
     required: true
   github_username:
-    description: The username that the `github_access_token` belongs to
+    description: The username of the GitHub user that the `github_access_token` belongs to
     required: true
   extension_name:
-    description: The name of your extension, which should exist as a directory inside the `extensions` directory in the `raycast/extensions` repo (for example `iata-code-decoder`) 
+    description: The name of your extension. This should be lower case, with dashes separating words (e.g. `iata-code-decoder`). If you've already published your extension at least once to the `raycast/extensions` repo, this should be the name of the folder under `extensions/` where your extension lives.
     required: true
 outputs:
   pull_request_url:
-    description: The URL of the pull request to `raycast/extensions` that was created
+    description: The URL of the pull request to `raycast/extensions`
     value: ${{ steps.create_pull_request.outputs.url }}
 runs:
   using: composite
   steps:
-    - name: Get GitHub release information
+    - name: Get information about the current GitHub release
       id: get_github_release
       uses: cardinalby/git-get-release-action@v1
       env:
+        # We can use the GitHub Actions-provided token for this step, since it will
+        # have access to the repo this action is running in.
         GITHUB_TOKEN: ${{ github.token }}
       with:
+        # If there is no release pointing to the SHA, then this step will fail and
+        # we will not continue. This makes sense as there is nothing to release.
         commitSha: ${{ env.GITHUB_SHA }}
-    - name: Check out your extension repo
+    - name: Check out the current repo
       uses: actions/checkout@v3
       with:
         path: my-extension
@@ -38,18 +42,32 @@ runs:
       uses: actions/checkout@v3
       with:
         repository: raycast/extensions
+        # The GitHub Actions-provided token only has access to the repo where the
+        # action is running, and not other repos the user has access to. We use
+        # our personal access token which has wider access.
         token: ${{ inputs.github_access_token }}
         path: raycast-extensions
+        # To be able to push to our fork, we need to fetch the Git history, not just
+        # the HEAD.
         fetch-depth: 0
-    - name: Set up your fork of the `extensions` repo
-      run: git remote add fork https://${{ inputs.github_username }}:${{ inputs.github_access_token }}@github.com/${{ inputs.extensions_fork }}.git
+    - name: Point the cloned `raycast/extensions` repo to the configured fork
+      # We have to use our personal access token to access the fork.
+      run: git remote add fork https://${{ inputs.github_username }}:${{ inputs.github_access_token }}@github.com/${{ inputs.raycast_extensions_fork_full_name }}.git
       shell: bash
       working-directory: raycast-extensions
-    - name: Copy your extension into the `raycast/extensions` repo
+    - name: Create a directory for your extension, if it doesn't exist already
+      run: mkdir -p extensions/${{ inputs.extension_name }}
+      shell: bash
+      working-directory: raycast-extensions
+    - name: Copy extension into the `raycast/extensions` repo
       run: cp -Rf . ../raycast-extensions/extensions/${{ inputs.extension_name }}
       shell: bash
       working-directory: my-extension
-    - name: Create a branch for your extension release
+    - name: Remove `.github` directory from extension release
+      run: rm -rf .github
+      shell: bash
+      working-directory: my-extension
+    - name: Create a branch for the extension release
       run: git checkout -b ${{ inputs.extension_name }}-${{ steps.get_github_release.outputs.tag_name }}
       shell: bash
       working-directory: raycast-extensions
@@ -57,22 +75,24 @@ runs:
       run: git add --all .
       shell: bash
       working-directory: raycast-extensions
-    - name: Configure Git so we can make commits
+    - name: Configure Git user information so we can commit
       run: git config user.name github-actions && git config user.email github-actions@github.com
       shell: bash
       working-directory: raycast-extensions
-    - name: Commit changes
+    - name: Commit changes to release branch
       run: git commit -m 'Update ${{ inputs.extension_name }} to ${{ steps.get_github_release.outputs.tag_name }}' -m "${{ steps.get_github_release.outputs.body }}"
       shell: bash
       working-directory: raycast-extensions
-    - name: Push changes to fork
+    - name: Push release branch to fork
       run: git push -f fork ${{ inputs.extension_name }}-${{ steps.get_github_release.outputs.tag_name }}
       shell: bash
       working-directory: raycast-extensions
-    - name: Create pull request
+    - name: Create pull request (if it doesn't already exist)
       id: create_pull_request
+      # If there is already a PR for this branch, then we'll skip creating a new PR and return the URL of the existing one
       run: echo "::set-output name={url}::$(gh pr create --assignee @me --head ${{ inputs.github_username }}:${{ inputs.extension_name }}-${{ steps.get_github_release.outputs.tag_name }} --fill)"
       shell: bash
       working-directory: raycast-extensions
       env:
+        # We have to use our personal access token to access the `raycast/extensions` repo.
         GH_TOKEN: ${{ inputs.github_access_token }}
