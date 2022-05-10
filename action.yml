@@ -1,5 +1,5 @@
 name: 'Publish Raycast Extension'
-description: Publishes changes to a Raycast extension, syncing a release from your own single extension repo to the shared `raycast/extensions` repo. This action is designed to hook into GitHub Actions' [`release.published` event](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#release), so it will fail if the most recent commit doesn't have an associated [release](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases).
+description: Automatically publish changes to a Raycast extension from your own repo to the central `raycast/extensions` repo
 branding:
   icon: cast
   color: red
