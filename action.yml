@@ -1,0 +1,62 @@
+name: 'Release Raycast Extension'
+description: Releases a Raycast extension from your own repo to the `raycast/extensions` repo. This action is designed to hook into the `release.published` event, and it will fail if the most recent commit doesn't have an associated release.
+branding:
+  icon: cast
+  color: red
+inputs:
+  extensions_fork:
+    description: The name of your fork of the `raycast/extensions` repo (for example `timrogers/extensions`)
+    required: true
+  github_access_token:
+    description: A GitHub personal access token with `repo` permissions, used to push to your fork (see `extensions_fork`) and create and manage pull requeats to the `raycast/extensions` repo. You should store this as an [encrypted secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets).
+    required: true
+  extension_path:
+    description: The path to your extension within the `raycast/extensions` repo (for example `extensions/iata-code-decoder`) 
+runs:
+  using: composite
+  steps:
+    - name: Get GitHub release information
+      id: get_github_release
+      uses: cardinalby/git-get-release-action@v1
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        commitSha: ${{ env.GITHUB_SHA }}
+    - name: Check out your extension repo
+      uses: actions/checkout@v3
+      with:
+        path: my-extension
+    - name: Check out the `raycast/extensions` repo
+      uses: actions/checkout@v3
+      with:
+        repository: raycast/extensions
+        token: ${{ inputs.github_access_token }}
+        path: raycast-extensions
+    - name: Set up your fork of the `extensions` repo
+      run: git remote add fork git@github.com:${{ inputs.extensions_fork }}.git
+      shell: bash
+      working-directory: raycast-extensions
+    - name: Create your extension directory in the `extensions` repo (if it doesn't exist already)
+      run: mkdir -p ${{ inputs.extension_path }}
+      shell: bash
+      working-directory: raycast-extensions
+    - name: Copy your extension into the `raycast/extensions` repo
+      run: cp -Rf . ../raycast-extensions/${{ inputs.extension_path }}
+      shell: bash
+      working_directory: my-extension
+    - name: Create a branch for your extension release
+      run: git checkout -b ${{ inputs.extension_path }}-${{ steps.get_github_release.outputs.tag_name }}
+      shell: bash
+      working_directory: raycast-extensions
+    - name: Stage changes, ready to commit
+      run: git add --all .
+      shell: bash
+      working-directory: raycast-extensions
+    - name: Commit changes
+      run: git commit -m '${{ steps.get_github_release.outputs.tag_name }}'
+      shell: bash
+      working-directory: raycast-extensions
+    - name: Push changes to fork
+      run: git push -f fork ${{ inputs.extension_path }}-${{ steps.get_github_release.outputs.tag_name }}
+      shell: bash
+      working-directory: raycast-extensions
