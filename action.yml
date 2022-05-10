@@ -73,3 +73,5 @@ runs:
       run: gh pr create --title "Update ${{ inputs.extension_name }} to ${{ steps.get_github_release.outputs.tag_name }}" --body "${{ steps.get_github_release.outputs.body }}"
       shell: bash
       working-directory: raycast-extensions
+      env:
+        GH_TOKEN: ${{ inputs.github_access_token }}
