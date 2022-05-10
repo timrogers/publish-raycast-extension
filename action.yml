@@ -44,11 +44,11 @@ runs:
     - name: Copy your extension into the `raycast/extensions` repo
       run: cp -Rf . ../raycast-extensions/${{ inputs.extension_path }}
       shell: bash
-      working_directory: my-extension
+      working-directory: my-extension
     - name: Create a branch for your extension release
       run: git checkout -b ${{ inputs.extension_path }}-${{ steps.get_github_release.outputs.tag_name }}
       shell: bash
-      working_directory: raycast-extensions
+      working-directory: raycast-extensions
     - name: Stage changes, ready to commit
       run: git add --all .
       shell: bash
