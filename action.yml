@@ -55,16 +55,16 @@ runs:
       run: git remote add fork https://${{ inputs.github_username }}:${{ inputs.github_access_token }}@github.com/${{ inputs.raycast_extensions_fork_full_name }}.git
       shell: bash
       working-directory: raycast-extensions
-    - name: Create a directory for your extension, if it doesn't exist already
+    - name: Create a directory for your extension in `raycast/extensions`, if it doesn't exist already
       run: mkdir -p extensions/${{ inputs.extension_name }}
       shell: bash
       working-directory: raycast-extensions
-    - name: Copy extension into the `raycast/extensions` repo
-      run: cp -Rf . ../raycast-extensions/extensions/${{ inputs.extension_name }}
+    - name: Remove `.github` directory before copying to `raycast/extensions`
+      run: rm -rf .github
       shell: bash
       working-directory: my-extension
-    - name: Remove `.github` directory from extension release
-      run: rm -rf .github
+    - name: Copy extension into the `raycast/extensions` repo
+      run: cp -Rf . ../raycast-extensions/extensions/${{ inputs.extension_name }}
       shell: bash
       working-directory: my-extension
     - name: Create a branch for the extension release
