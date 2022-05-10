@@ -62,7 +62,7 @@ runs:
       shell: bash
       working-directory: raycast-extensions
     - name: Commit changes
-      run: git commit -m '${{ steps.get_github_release.outputs.tag_name }}'
+      run: git commit -m 'Update ${{ inputs.extension_name }} to ${{ steps.get_github_release.outputs.tag_name }}' -m "${{ steps.get_github_release.outputs.body }}"
       shell: bash
       working-directory: raycast-extensions
     - name: Push changes to fork
@@ -70,7 +70,7 @@ runs:
       shell: bash
       working-directory: raycast-extensions
     - name: Create pull request
-      run: gh pr create --head ${{ inputs.github_username }}:${{ inputs.extension_name }}-${{ steps.get_github_release.outputs.tag_name }} --title "Update ${{ inputs.extension_name }} to ${{ steps.get_github_release.outputs.tag_name }}" --body "${{ steps.get_github_release.outputs.body }}"
+      run: gh pr create --assignee @me --head ${{ inputs.github_username }}:${{ inputs.extension_name }}-${{ steps.get_github_release.outputs.tag_name }} --fill
       shell: bash
       working-directory: raycast-extensions
       env:
