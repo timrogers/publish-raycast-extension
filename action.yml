@@ -10,6 +10,10 @@ inputs:
   github_access_token:
     description: A GitHub personal access token with `repo` permissions, used to push to your fork (see `extensions_fork`) and create and manage pull requeats to the `raycast/extensions` repo. You should store this as an [encrypted secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets).
     required: true
+  github_username:
+    description: The username that the `github_access_token` belongs to
+    required: false
+    default: timrogers
   extension_path:
     description: The path to your extension within the `raycast/extensions` repo (for example `extensions/iata-code-decoder`) 
     required: true
@@ -34,7 +38,7 @@ runs:
         token: ${{ inputs.github_access_token }}
         path: raycast-extensions
     - name: Set up your fork of the `extensions` repo
-      run: git remote add fork git@github.com:${{ inputs.extensions_fork }}.git
+      run: git remote add fork https://${{ inputs.github_username }}:${{ inputs.github_access_token }}@github.com/${{ inputs.extensions_fork }}.git
       shell: bash
       working-directory: raycast-extensions
     - name: Create your extension directory in the `extensions` repo (if it doesn't exist already)
