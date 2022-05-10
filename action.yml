@@ -13,6 +13,7 @@ inputs:
   github_username:
     description: The username that the `github_access_token` belongs to
     required: false
+    # TODO: Remove default
     default: timrogers
   extension_path:
     description: The path to your extension within the `raycast/extensions` repo (for example `extensions/iata-code-decoder`) 
@@ -37,6 +38,7 @@ runs:
         repository: raycast/extensions
         token: ${{ inputs.github_access_token }}
         path: raycast-extensions
+        fetch-depth: 0
     - name: Set up your fork of the `extensions` repo
       run: git remote add fork https://${{ inputs.github_username }}:${{ inputs.github_access_token }}@github.com/${{ inputs.extensions_fork }}.git
       shell: bash
