@@ -63,6 +63,10 @@ runs:
       run: rm -rf .github
       shell: bash
       working-directory: my-extension
+    - name: Remove `.git` directory before copying to `raycast/extensions`
+      run: rm -rf .git
+      shell: bash
+      working-directory: my-extension
     - name: Copy extension into the `raycast/extensions` repo
       run: cp -Rf . ../raycast-extensions/extensions/${{ inputs.extension_name }}
       shell: bash
