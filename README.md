@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: timrogers/publish-raycast-extension@main
+      - uses: timrogers/publish-raycast-extension@v1.0.1
         with:
           # CHANGE ME to the full name of your fork of the `raycast/extensions` repo (for example `timrogers/extensions`)
           extensions_fork: timrogers/extensions
