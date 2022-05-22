@@ -2,6 +2,16 @@
 
 This simple __GitHub Action__ allows you to store a [custom extension](https://github.com/raycast/extensions) for [Raycast](https://raycast.com/) in your own repo, and automatically publish changes to the central `raycast/extensions` repo which powers the [Raycast Store](https://www.raycast.com/store).
 
+## Why is this useful?
+
+When you start writing a Raycast extension, you'll naturally create your own repo with its own issues, pull requests, readme, continuous integration setup, etc.
+
+However, when you want to release the extension in the Raycast Store, it has to be committed to the [`raycast/extensions` repo]((https://github.com/raycast/extensions). 
+
+Getting code between your repo and the central one is a bit of a pain. When you make changes, you'll need to copy them across to the central repo, and occasionally changes can be made by the Raycast team when reviewing a pull request that you want to bring back to your own repo.
+
+This GitHub Action, combined with my ["Pull Raycast Extension Changes" action](https://github.com/timrogers/pull-raycast-extension-changes), allows you to have to best of both worlds: your extension can live in your own repo, but be automatically synced in both directions with `raycast/extensions`.
+
 Here's how it works, step by step:
 
 1. Set up your own repo for your custom Raycast extension
